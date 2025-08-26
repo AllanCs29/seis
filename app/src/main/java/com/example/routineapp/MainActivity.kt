@@ -1,4 +1,3 @@
-
 @file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 
 package com.example.routineapp
@@ -12,14 +11,46 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.material3.NavigationBarItemColorsDefaults
+import androidx.compose.material3.NavigationBarDefaults.itemPadding
+import androidx.compose.material3.NavigationBarDefaults.containerColor
+import androidx.compose.material3.NavigationBarDefaults.tonalElevation
+import androidx.compose.material3.NavigationBarDefaults.windowInsets
+import androidx.compose.material3.NavigationBarDefaults.windowInsetsBottom
+import androidx.compose.material3.NavigationBarDefaults.windowInsetsLeft
+import androidx.compose.material3.NavigationBarDefaults.windowInsetsRight
+import androidx.compose.material3.NavigationBarDefaults.windowInsetsTop
+import androidx.compose.material3.NavigationBarDefaults.windowInsetsPadding
+import androidx.compose.material3.NavigationBarDefaults.windowInsetsOnly
+import androidx.compose.material3.NavigationBarDefaults.windowInsetsSafeDrawing
+import androidx.compose.material3.NavigationBarDefaults.itemIconContentColor
+import androidx.compose.material3.NavigationBarDefaults.itemTextStyle
+import androidx.compose.material3.NavigationBarDefaults.itemLabelContentColor
+import androidx.compose.material3.Button
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.*
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import com.example.routineapp.data.*
 import com.example.routineapp.ui.theme.RoutineTheme
 import com.example.routineapp.util.PdfExporter
@@ -27,6 +58,8 @@ import com.example.routineapp.util.scheduleReminder
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 enum class Tab { HOY, PESAS, FUTBOL, ESTUDIO, STATS }
 
@@ -101,7 +134,12 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun NavTab(current: Tab, value: Tab, icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: (Tab) -> Unit) {
-    NavigationBarItem(selected = current == value, onClick = { onClick(value) }, icon = { Icon(icon, label) }, label = { Text(label) })
+    NavigationBarItem(
+        selected = current == value,
+        onClick = { onClick(value) },
+        icon = { Icon(icon, label) },
+        label = { Text(label) }
+    )
 }
 
 @Composable
@@ -157,8 +195,6 @@ fun TodayTab(
                     Text(it.time ?: "—", modifier = Modifier.width(64.dp), fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.width(8.dp))
                     Checkbox(checked = it.done, onCheckedChange = { c ->
-                        // toggle using original index
-                        // (simple: find first match)
                         val idx = items.indexOfFirst { src -> src.title == it.title && src.time == it.time && src.done == it.done }
                         if (idx >= 0) onToggle(idx, c)
                     })
@@ -276,7 +312,10 @@ fun StudyTab() {
         val startSec = (if (onWork) work else rest) * 60
         remaining = if (remaining > 0) remaining else startSec
         job = scope.launch {
-            while (remaining > 0 && running) { kotlinx.coroutines.delay(1000); remaining -= 1 }
+            while (remaining > 0 && running) {
+                delay(1000)
+                remaining -= 1
+            }
             if (remaining <= 0) {
                 running = false; onWork = !onWork; remaining = 0
             }
