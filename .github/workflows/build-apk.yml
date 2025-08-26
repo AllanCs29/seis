@@ -1,4 +1,3 @@
-
 name: Build APK
 on:
   workflow_dispatch:
@@ -21,17 +20,27 @@ jobs:
       - name: Accept SDK licenses
         run: yes | sdkmanager --licenses
 
-      - name: Build Debug APK (Gradle 8.6)
+      - name: Install Gradle 8.6
         run: |
           sudo apt-get update
           sudo apt-get install -y wget unzip
           wget https://services.gradle.org/distributions/gradle-8.6-bin.zip -O gradle-8.6-bin.zip
           unzip -q gradle-8.6-bin.zip -d $HOME
-          export PATH="$HOME/gradle-8.6/bin:$PATH"
+          echo "$HOME/gradle-8.6/bin" >> $GITHUB_PATH
           gradle --version
-          gradle clean :app:assembleDebug
 
-      - name: Upload APK
+      - name: Generate debug keystore (so assembleDebug never fails)
+        run: |
+          mkdir -p ~/.android
+          keytool -genkey -v -keystore ~/.android/debug.keystore \
+            -storepass android -alias androiddebugkey -keypass android \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Build Debug APK
+        run: gradle clean :app:assembleDebug
+
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-debug-apk
